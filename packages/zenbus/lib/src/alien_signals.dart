@@ -58,17 +58,11 @@ class ZenBusAlienSignals<T> implements ZenBus<T> {
     return _ZenBusSubscriptionAlienSignals(
       effect(() {
         final value = filter();
-        if (value is T) {
-          // Skip the first call because it's the initial value
-          if (firstCall) {
-            firstCall = false;
-            return;
-          }
-
-          listener(value);
-        } else if (firstCall) {
+        // Skip the first call because it's the initial value
+        if (firstCall) {
           firstCall = false;
-          return;
+        } else if (value is T) {
+          listener(value);
         }
       }),
     );
