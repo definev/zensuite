@@ -33,7 +33,7 @@ import 'package:zenbus/src/bus.dart';
 /// bus.fire(2); // Prints: Even: 2
 /// ```
 class ZenBusAlienSignals<T> implements ZenBus<T> {
-  WritableSignal<T?>? _signal = signal(null);
+  WritableSignal<T?>? _signal = signal<T?>(null);
 
   @override
   void fire(T event) {
@@ -46,25 +46,25 @@ class ZenBusAlienSignals<T> implements ZenBus<T> {
     void Function(T event) listener, {
     bool Function(T event)? where,
   }) {
-    bool firstCall = true;
-
     final filter = computed<T?>((prev) {
       assert(_signal != null, 'Bus is disposed cannot listen');
-      final value = _signal!();
-      if (value != null && (where?.call(value) ?? true)) {
-        return value;
-      }
-      return prev;
+      return switch (_signal()) {
+        T value when where?.call(value) ?? true => value,
+        _ => prev,
+      };
     });
+
+    bool firstCall = true;
     return _ZenBusSubscriptionAlienSignals(
       effect(() {
         final value = filter();
-        // Skip the first call because it's the initial value
-        if (value != null) {
+        if (value is T) {
+          // Skip the first call because it's the initial value
           if (firstCall) {
             firstCall = false;
             return;
           }
+
           listener(value);
         }
       }),
