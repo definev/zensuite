@@ -66,6 +66,9 @@ class ZenBusAlienSignals<T> implements ZenBus<T> {
           }
 
           listener(value);
+        } else if (firstCall) {
+          firstCall = false;
+          return;
         }
       }),
     );
