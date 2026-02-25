@@ -23,6 +23,9 @@
 /// subscription.cancel();
 /// ```
 ///
+/// // Dispose bus
+/// bus.dispose();
+///
 /// ## Implementations
 ///
 /// - **Alien Signal** (Recommended): Best performance and memory efficiency

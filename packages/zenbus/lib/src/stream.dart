@@ -39,6 +39,11 @@ class ZenBusStream<T> implements ZenBus<T> {
     }
     return _ZenBusSubscriptionStream(stream.listen(listener));
   }
+
+  @override
+  void dispose() {
+    _controller.close();
+  }
 }
 
 class _ZenBusSubscriptionStream<T> implements ZenBusSubscription<T> {

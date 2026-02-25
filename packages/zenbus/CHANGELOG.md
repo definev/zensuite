@@ -1,3 +1,7 @@
+## 1.0.2
+
+- Added `dispose` method to all implementations.
+
 ## 1.0.1
 
 - Fixed `AlienSignals` implementation to skip the first call prevent recursive calls.

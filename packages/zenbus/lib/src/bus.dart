@@ -89,6 +89,12 @@ abstract class ZenBus<T> {
     void Function(T event) listener, {
     bool Function(T event)? where,
   });
+
+  /// Disposes of this bus.
+  ///
+  /// This method should be called when the bus is no longer needed to free up
+  /// resources. It is safe to call this method multiple times.
+  void dispose();
 }
 
 /// A subscription to a [ZenBus] that can be cancelled.
