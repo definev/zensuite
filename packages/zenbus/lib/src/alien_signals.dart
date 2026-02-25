@@ -13,9 +13,8 @@ import 'package:zenbus/src/bus.dart';
 /// - Fine-grained reactivity requirements
 ///
 /// The implementation uses:
-/// - A [WritableSignal] to store the latest event
-/// - A [computed] signal for filtering events based on the [where] predicate
-/// - An [effect] to trigger listener callbacks when filtered events change
+/// - A [WritableSignal] to store the latest wrapped event
+/// - An [effect] to trigger listener callbacks on each fired event
 ///
 /// Example:
 /// ```dart
@@ -33,12 +32,13 @@ import 'package:zenbus/src/bus.dart';
 /// bus.fire(2); // Prints: Even: 2
 /// ```
 class ZenBusAlienSignals<T> implements ZenBus<T> {
-  WritableSignal<T?>? _signal = signal<T?>(null);
+  WritableSignal<_ZenBusEvent<T>?>? _signal = signal<_ZenBusEvent<T>?>(null);
+  int _eventId = 0;
 
   @override
   void fire(T event) {
     assert(_signal != null, 'Bus is disposed cannot fire events');
-    _signal!.set(event);
+    _signal!.set(_ZenBusEvent(++_eventId, event));
   }
 
   @override
@@ -46,23 +46,22 @@ class ZenBusAlienSignals<T> implements ZenBus<T> {
     void Function(T event) listener, {
     bool Function(T event)? where,
   }) {
-    final filter = computed<T?>((prev) {
-      assert(_signal != null, 'Bus is disposed cannot listen');
-      return switch (_signal()) {
-        T value when where?.call(value) ?? true => value,
-        _ => prev,
-      };
-    });
-
     bool firstCall = true;
     return _ZenBusSubscriptionAlienSignals(
       effect(() {
-        final value = filter();
+        assert(_signal != null, 'Bus is disposed cannot listen');
+        final event = _signal!();
         // Skip the first call because it's the initial value
         if (firstCall) {
           firstCall = false;
-        } else if (value is T) {
-          listener(value);
+          return;
+        }
+
+        switch (event) {
+          case _ZenBusEvent<T>(:final value) when where?.call(value) ?? true:
+            listener(value);
+          case _:
+            break;
         }
       }),
     );
@@ -81,4 +80,11 @@ class _ZenBusSubscriptionAlienSignals<T> implements ZenBusSubscription<T> {
 
   @override
   void cancel() => _subscription();
+}
+
+class _ZenBusEvent<T> {
+  final int id;
+  final T value;
+
+  const _ZenBusEvent(this.id, this.value);
 }
