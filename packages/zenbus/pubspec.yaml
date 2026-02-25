@@ -1,5 +1,5 @@
 name: zenbus
-description: A high-performance event bus for Flutter
+description: A high-performance event bus for Dart/Flutter
 version: 1.0.2
 repository: https://github.com/definev/zensuite
 homepage: https://github.com/definev/zensuite/tree/main/packages/zenbus
@@ -9,14 +9,10 @@ resolution: workspace
 
 environment:
   sdk: ^3.6.0
-  flutter: ">=1.17.0"
 
 dependencies:
-  flutter:
-    sdk: flutter
-  
   alien_signals: ^2.1.2
-  
+
 dev_dependencies:
-  flutter_lints: ^6.0.0
+  lints: ^6.1.0
   vm_service: ^14.3.1
