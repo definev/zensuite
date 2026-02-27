@@ -83,12 +83,11 @@ AsyncNotifierProviderFamily<
 >
 createQueryEditableFamilyPersist<NResult, NParam>(
   Future<NResult> Function(Ref ref, NParam param) query,
-) =>
-    AsyncNotifierProvider.family<
-      QueryEditableFamily<NResult, NParam>,
-      NResult,
-      NParam
-    >((param) => QueryEditableFamily(query, param));
+) => AsyncNotifierProvider.family<
+  QueryEditableFamily<NResult, NParam>,
+  NResult,
+  NParam
+>((param) => QueryEditableFamily(query, param));
 
 /// An [AsyncNotifier] that allows manual modification of its state.
 ///
@@ -122,7 +121,7 @@ class QueryEditableFamily<NResult, NParam> extends AsyncNotifier<NResult> {
 
   /// The function to fetch the initial data.
   final Future<NResult> Function(Ref ref, NParam param) query;
-  
+
   /// The parameter associated with this query instance.
   final NParam param;
 

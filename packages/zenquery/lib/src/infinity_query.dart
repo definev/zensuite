@@ -44,14 +44,10 @@ class InfinityQueryData<T, C> {
 /// A callback function that returns a Future.
 typedef FutureCallback = Future<void> Function();
 
-/// Creates a [Provider] for an [InfinityQueryData] that automatically disposes when unused.
-///
-/// [fetch] is the function to fetch data for a given cursor.
-/// [getNextCursor] determines the cursor for the next page.
-Provider<InfinityQueryData<T, TCursor>> createInfinityQuery<T, TCursor>({
+InfinityQueryData<T, TCursor> Function(Ref ref) infinityQueryFn<T, TCursor>({
   required FetchFunction<T, TCursor> fetch,
   required NextCursorFunction<T, TCursor> getNextCursor,
-}) => Provider.autoDispose((ref) {
+}) => (ref) {
   final query = InfinityQuery<T, TCursor>(
     fetch: fetch,
     getNextCursor: getNextCursor,
@@ -67,7 +63,18 @@ Provider<InfinityQueryData<T, TCursor>> createInfinityQuery<T, TCursor>({
     hasNext: query.hasNext,
     loadState: query.loadState,
   );
-});
+};
+
+/// Creates a [Provider] for an [InfinityQueryData] that automatically disposes when unused.
+///
+/// [fetch] is the function to fetch data for a given cursor.
+/// [getNextCursor] determines the cursor for the next page.
+Provider<InfinityQueryData<T, TCursor>> createInfinityQuery<T, TCursor>({
+  required FetchFunction<T, TCursor> fetch,
+  required NextCursorFunction<T, TCursor> getNextCursor,
+}) => Provider.autoDispose(
+  infinityQueryFn<T, TCursor>(fetch: fetch, getNextCursor: getNextCursor),
+);
 
 /// Creates a [Provider] for an [InfinityQueryData] that persists its state.
 ///
@@ -76,21 +83,9 @@ Provider<InfinityQueryData<T, TCursor>> createInfinityQuery<T, TCursor>({
 Provider<InfinityQueryData<T, TCursor>> createInfinityQueryPersist<T, TCursor>({
   required FetchFunction<T, TCursor> fetch,
   required NextCursorFunction<T, TCursor> getNextCursor,
-}) => Provider((ref) {
-  final query = InfinityQuery<T, TCursor>(
-    fetch: fetch,
-    getNextCursor: getNextCursor,
-  );
-  ref.onDispose(query.dispose);
-  return InfinityQueryData(
-    fetchNext: () => query.fetchNextPage(ref),
-    refresh: () => query.refresh(ref),
-    pages: query.pages,
-    data: query.data,
-    hasNext: query.hasNext,
-    loadState: query.loadState,
-  );
-});
+}) => Provider(
+  infinityQueryFn<T, TCursor>(fetch: fetch, getNextCursor: getNextCursor),
+);
 
 /// Manages the state and logic for infinite pagination.
 class InfinityQuery<T, TCursor> {
@@ -105,13 +100,13 @@ class InfinityQuery<T, TCursor> {
 
   /// The loading state of the query.
   final Mutation<void> loadState = Mutation<void>();
-  
+
   /// The flattened list of all items.
   final ValueNotifier<List<T>> data = ValueNotifier([]);
-  
+
   /// The list of pages, where each page is a list of items.
   final ValueNotifier<List<List<T>>> pages = ValueNotifier([]);
-  
+
   /// Whether there are more pages to fetch.
   final ValueNotifier<bool> hasNext = ValueNotifier(true);
 
