@@ -1,6 +1,6 @@
 name: zenquery
 description: "Wrapper around Riverpod for powerful asynchronous state management, server-state utilities and data fetching. Inspired by TanStack Query"
-version: 1.0.0
+version: 1.0.1
 
 resolution: workspace
 
