@@ -9,8 +9,8 @@ void main() {
       addTearDown(container.dispose);
 
       final query = createInfinityQuery<int, int>(
-        fetch: (cursor) async => [1, 2, 3],
-        getNextCursor: (lastPage, allPages) => null,
+        fetch: (_, cursor) async => [1, 2, 3],
+        getNextCursor: (_, lastPage, allPages) => null,
       );
 
       final data = container.read(query);
@@ -24,7 +24,6 @@ void main() {
 
       expect(data.data.value, [1, 2, 3]);
       expect(data.pages.value.length, 1);
-      expect(data.hasNext.value, false);
     });
 
     test('createInfinityQuery fetches next page', () async {
@@ -32,11 +31,12 @@ void main() {
       addTearDown(container.dispose);
 
       final query = createInfinityQuery<int, int>(
-        fetch: (cursor) async {
+        fetch: (_, cursor) async {
           if (cursor == null) return [1, 2];
           return [3, 4];
         },
-        getNextCursor: (lastPage, allPages) => allPages.length < 2 ? 1 : null,
+        getNextCursor:
+            (_, lastPage, allPages) => allPages.length < 2 ? 1 : null,
       );
 
       final data = container.read(query);
@@ -44,14 +44,12 @@ void main() {
       // Fetch first page
       await data.fetchNext();
       expect(data.data.value, [1, 2]);
-      expect(data.hasNext.value, true);
 
       // Fetch next page
       await data.fetchNext();
 
       expect(data.data.value, [1, 2, 3, 4]);
       expect(data.pages.value.length, 2);
-      expect(data.hasNext.value, false);
     });
 
     test('createInfinityQuery refresh resets data', () async {
@@ -59,8 +57,8 @@ void main() {
       addTearDown(container.dispose);
 
       final query = createInfinityQuery<int, int>(
-        fetch: (cursor) async => [1, 2, 3],
-        getNextCursor: (lastPage, allPages) => null,
+        fetch: (_, cursor) async => [1, 2, 3],
+        getNextCursor: (_, lastPage, allPages) => null,
       );
 
       final data = container.read(query);
@@ -80,8 +78,8 @@ void main() {
       addTearDown(container.dispose);
 
       final query = createInfinityQueryPersist<int, int>(
-        fetch: (cursor) async => [10, 20, 30],
-        getNextCursor: (lastPage, allPages) => null,
+        fetch: (_, cursor) async => [10, 20, 30],
+        getNextCursor: (_, lastPage, allPages) => null,
       );
 
       final data = container.read(query);
@@ -90,7 +88,6 @@ void main() {
 
       expect(data.data.value, [10, 20, 30]);
       expect(data.pages.value.length, 1);
-      expect(data.hasNext.value, false);
     });
 
     test('InfinityQuery.isLoading returns true during fetch', () async {
@@ -98,11 +95,11 @@ void main() {
       addTearDown(container.dispose);
 
       final query = InfinityQuery<int, int>(
-        fetch: (cursor) async {
+        fetch: (_, cursor) async {
           await Future.delayed(const Duration(milliseconds: 50));
           return [1, 2, 3];
         },
-        getNextCursor: (lastPage, allPages) => null,
+        getNextCursor: (_, lastPage, allPages) => null,
       );
       addTearDown(query.dispose);
 
@@ -124,8 +121,8 @@ void main() {
 
       final testError = Exception('fetch failed');
       final query = InfinityQuery<int, int>(
-        fetch: (cursor) async => throw testError,
-        getNextCursor: (lastPage, allPages) => null,
+        fetch: (_, cursor) async => throw testError,
+        getNextCursor: (_, lastPage, allPages) => null,
       );
       addTearDown(query.dispose);
 
@@ -142,12 +139,12 @@ void main() {
 
       var fetchCount = 0;
       final query = InfinityQuery<int, int>(
-        fetch: (cursor) async {
+        fetch: (_, cursor) async {
           fetchCount++;
           await Future.delayed(const Duration(milliseconds: 50));
           return [1, 2, 3];
         },
-        getNextCursor: (lastPage, allPages) => null,
+        getNextCursor: (_, lastPage, allPages) => null,
       );
       addTearDown(query.dispose);
 
@@ -167,11 +164,11 @@ void main() {
 
       var fetchCount = 0;
       final query = InfinityQuery<int, int>(
-        fetch: (cursor) async {
+        fetch: (_, cursor) async {
           fetchCount++;
           return [1, 2, 3];
         },
-        getNextCursor: (lastPage, allPages) => null,
+        getNextCursor: (_, lastPage, allPages) => null,
       );
       addTearDown(query.dispose);
 
@@ -189,8 +186,8 @@ void main() {
       addTearDown(container.dispose);
 
       final query = InfinityQuery<int, int>(
-        fetch: (cursor) async => [1, 2, 3],
-        getNextCursor: (lastPage, allPages) => null,
+        fetch: (_, cursor) async => [1, 2, 3],
+        getNextCursor: (_, lastPage, allPages) => null,
       );
       addTearDown(query.dispose);
 
@@ -205,12 +202,13 @@ void main() {
 
       var fetchCount = 0;
       final query = InfinityQuery<int, int>(
-        fetch: (cursor) async {
+        fetch: (_, cursor) async {
           fetchCount++;
           if (cursor == null) return [1, 2];
           return [3, 4];
         },
-        getNextCursor: (lastPage, allPages) => allPages.length < 2 ? 1 : null,
+        getNextCursor:
+            (_, lastPage, allPages) => allPages.length < 2 ? 1 : null,
       );
       addTearDown(query.dispose);
 
@@ -238,11 +236,11 @@ void main() {
 
       var fetchCount = 0;
       final query = createInfinityQueryPersist<int, int>(
-        fetch: (cursor) async {
+        fetch: (_, cursor) async {
           fetchCount++;
           return [fetchCount * 10];
         },
-        getNextCursor: (lastPage, allPages) => null,
+        getNextCursor: (_, lastPage, allPages) => null,
       );
 
       final data = container.read(query);
@@ -261,13 +259,14 @@ void main() {
       final completer = Completer<void>();
 
       final query = createInfinityQuery<int, int>(
-        fetch: (cursor) async {
+        fetch: (_, cursor) async {
           if (cursor == null) return [1];
           // Simulate slow fetch for second page
           await completer.future;
           return [2];
         },
-        getNextCursor: (lastPage, allPages) => allPages.length < 2 ? 1 : null,
+        getNextCursor:
+            (_, lastPage, allPages) => allPages.length < 2 ? 1 : null,
       );
 
       final data = container.read(query);

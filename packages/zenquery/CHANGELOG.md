@@ -1,3 +1,7 @@
+## 1.0.2
+
+- Expose `Ref` into `fetch` function
+
 ## 1.0.1
 
 - Refactored `mutation.dart`: extracted `mutationActionFn` and `mutationActionWithParamFn` helpers to eliminate duplicated logic between auto-dispose and persist variants of `createMutation`, `createMutationPersist`, `createMutationWithParam`, and `createMutationWithParamPersist`.

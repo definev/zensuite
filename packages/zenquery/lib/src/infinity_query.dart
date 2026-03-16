@@ -3,13 +3,18 @@ import 'package:riverpod/experimental/mutation.dart';
 import 'package:riverpod/riverpod.dart';
 
 /// A function that fetches a list of items based on a cursor.
-typedef FetchFunction<T, TCursor> = Future<List<T>> Function(TCursor? cursor);
+typedef FetchFunction<T, TCursor> =
+    Future<List<T>> Function(MutationTransaction tsx, TCursor? cursor);
 
 /// A function that determines the next cursor based on the last loaded page and all loaded pages.
 ///
 /// Returns `null` if there are no more pages.
 typedef NextCursorFunction<T, TCursor> =
-    TCursor? Function(List<T>? lastPage, List<List<T>> pages);
+    TCursor? Function(
+      ProviderContainer container,
+      List<T>? lastPage,
+      List<List<T>> pages,
+    );
 
 /// Holds the state and actions for an infinite query.
 class InfinityQueryData<T, C> {
@@ -18,7 +23,6 @@ class InfinityQueryData<T, C> {
     required this.refresh,
     required this.pages,
     required this.data,
-    required this.hasNext,
     required this.loadState,
   });
 
@@ -33,9 +37,6 @@ class InfinityQueryData<T, C> {
 
   /// A notifier holding the flattened list of all items.
   final ValueNotifier<List<T>> data;
-
-  /// A notifier indicating if there are more pages to fetch.
-  final ValueNotifier<bool> hasNext;
 
   /// The loading state of the query (e.g., pending, success, error).
   final Mutation<void> loadState;
@@ -60,7 +61,6 @@ InfinityQueryData<T, TCursor> Function(Ref ref) infinityQueryFn<T, TCursor>({
     refresh: () => query.refresh(ref),
     pages: query.pages,
     data: query.data,
-    hasNext: query.hasNext,
     loadState: query.loadState,
   );
 };
@@ -90,9 +90,8 @@ Provider<InfinityQueryData<T, TCursor>> createInfinityQueryPersist<T, TCursor>({
 /// Manages the state and logic for infinite pagination.
 class InfinityQuery<T, TCursor> {
   InfinityQuery({
-    required Future<List<T>> Function(TCursor? param) fetch,
-    required TCursor? Function(List<T>? current, List<List<T>> all)
-    getNextCursor,
+    required FetchFunction<T, TCursor> fetch,
+    required NextCursorFunction<T, TCursor> getNextCursor,
   }) : _getNextCursor = getNextCursor,
        _fetch = fetch {
     pages.addListener(_updateData);
@@ -106,9 +105,6 @@ class InfinityQuery<T, TCursor> {
 
   /// The list of pages, where each page is a list of items.
   final ValueNotifier<List<List<T>>> pages = ValueNotifier([]);
-
-  /// Whether there are more pages to fetch.
-  final ValueNotifier<bool> hasNext = ValueNotifier(true);
 
   final FetchFunction<T, TCursor> _fetch;
   final NextCursorFunction<T, TCursor> _getNextCursor;
@@ -139,7 +135,7 @@ class InfinityQuery<T, TCursor> {
     final startVersion = _version;
 
     await this.loadState.run(target, (tsx) async {
-      final result = await _fetch(null);
+      final result = await _fetch(tsx, null);
       if (startVersion != _version) return;
       pages.value = [result];
     });
@@ -171,13 +167,17 @@ class InfinityQuery<T, TCursor> {
       return _fetchFirstPage(target);
     }
 
-    final nextCursor = _getNextCursor(pages.value.last, pages.value);
+    final nextCursor = _getNextCursor(
+      target.container,
+      pages.value.last,
+      pages.value,
+    );
     if (nextCursor == null) return;
 
     final startVersion = _version;
 
     await this.loadState.run(target, (tsx) async {
-      final result = await _fetch(nextCursor);
+      final result = await _fetch(tsx, nextCursor);
       if (startVersion != _version) return;
       pages.value = [...pages.value, result];
     });
@@ -206,6 +206,5 @@ class InfinityQuery<T, TCursor> {
 
   void _updateData() {
     data.value = pages.value.expand((page) => page).toList();
-    hasNext.value = _getNextCursor(pages.value.lastOrNull, pages.value) != null;
   }
 }
