@@ -1,6 +1,6 @@
 name: zensignals
 description: "Reactive state that fits Flutter"
-version: 0.0.1
+version: 1.0.0
 homepage:
 
 resolution: workspace
