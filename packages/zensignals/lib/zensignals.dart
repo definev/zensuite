@@ -8,3 +8,4 @@ export 'src/untrack.dart';
 export 'src/notifier.dart';
 export 'src/builder.dart';
 export 'src/mixin.dart';
+export 'src/helper.dart';

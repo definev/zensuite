@@ -17,8 +17,8 @@ import 'notifier.dart';
 /// [listen] to subscribe to an externally-owned notifier without taking
 /// ownership of its lifetime.
 mixin ReactiveNotifierMixin<T extends StatefulWidget> on State<T> {
-  final _ownedNotifiers = <ChangeNotifier>[];
-  final _listenableNotifiers = <ChangeNotifier>[];
+  final _ownedNotifiers = <ChangeNotifier>{};
+  final _listenableNotifiers = <ChangeNotifier>{};
 
   void _rebuild() => setState(() {});
 
@@ -27,17 +27,6 @@ mixin ReactiveNotifierMixin<T extends StatefulWidget> on State<T> {
   /// If listen is false, the SignalNotifier is owned by [State] and disposed when [State] is disposed.
   SignalNotifier<S> createSignal<S>(S initialValue, {bool listen = true}) {
     final notifier = SignalNotifier(initialValue);
-    attach(notifier, listen: listen);
-    return notifier;
-  }
-
-  /// Create a new ValueNotifier and listen to it.
-  /// If listen is true, the widget will rebuild when the notifier changes. The notifier is disposed when [State] is disposed.
-  /// If listen is false, the ValueNotifier is owned by [State] and disposed when [State] is disposed.
-  @Deprecated('Use `createSignal` instead.')
-  ValueNotifier<S> createValueNotifier<S>(S initialValue,
-      {bool listen = true}) {
-    final notifier = ValueNotifier(initialValue);
     attach(notifier, listen: listen);
     return notifier;
   }
