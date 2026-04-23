@@ -6,3 +6,4 @@ environment:
 workspace:
   - packages/zenquery
   - packages/zenbus
+  - packages/zensignals
