@@ -174,6 +174,65 @@ void main() {
         expect(find.text('7'), findsOneWidget);
         count.dispose();
       });
+
+      testWidgets('does not recreate computed on parent rebuild',
+          (tester) async {
+        final tick = ValueNotifier(0);
+        var innerBuilds = 0;
+
+        await tester.pumpWidget(
+          _wrap(
+            ValueListenableBuilder<int>(
+              valueListenable: tick,
+              builder: (_, __, ___) => SignalBuilder(
+                forceRebuild: false,
+                builder: (_) {
+                  innerBuilds++;
+                  return const Text('stable');
+                },
+              ),
+            ),
+          ),
+        );
+
+        final initial = innerBuilds;
+        tick.value++;
+        await tester.pumpAndSettle();
+
+        // Parent rebuilt, but SignalBuilder kept its computed instance.
+        expect(innerBuilds, initial);
+        tick.dispose();
+      });
+    });
+
+    group('forceRebuild: true', () {
+      testWidgets('recreates computed on parent rebuild', (tester) async {
+        final tick = ValueNotifier(0);
+        var innerBuilds = 0;
+
+        await tester.pumpWidget(
+          _wrap(
+            ValueListenableBuilder<int>(
+              valueListenable: tick,
+              builder: (_, __, ___) => SignalBuilder(
+                forceRebuild: true,
+                builder: (_) {
+                  innerBuilds++;
+                  return const Text('stable');
+                },
+              ),
+            ),
+          ),
+        );
+
+        final initial = innerBuilds;
+        tick.value++;
+        await tester.pumpAndSettle();
+
+        // Parent rebuilt and SignalBuilder recreated computed.
+        expect(innerBuilds, initial + 1);
+        tick.dispose();
+      });
     });
 
     // ─── untracked signal does not trigger rebuild ────────────────────────────
