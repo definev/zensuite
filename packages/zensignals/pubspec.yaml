@@ -1,7 +1,8 @@
 name: zensignals
 description: "Reactive state that fits Flutter"
 version: 1.0.0
-homepage:
+homepage: https://github.com/definev/zensuite
+repository: https://github.com/definev/zensuite
 
 resolution: workspace
 
